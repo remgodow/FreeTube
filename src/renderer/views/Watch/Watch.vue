@@ -21,6 +21,7 @@
           :storyboard-src="videoStoryboardSrc"
           :format="activeFormat"
           :thumbnail="thumbnail"
+          :markers="markers"
           class="videoPlayer"
           :class="{ theatrePlayer: useTheatreMode }"
           @ready="checkIfWatched"

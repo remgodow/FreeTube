@@ -64,4 +64,5 @@
 
 <style src="./themes.css" />
 <style src="./videoJS.css" />
+<style src="./videojs.markers.plugin.css" />
 <style scoped src="./App.css" />

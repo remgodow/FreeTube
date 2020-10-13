@@ -15,6 +15,7 @@ import WatchVideoComments from '../../components/watch-video-comments/watch-vide
 import WatchVideoLiveChat from '../../components/watch-video-live-chat/watch-video-live-chat.vue'
 import WatchVideoPlaylist from '../../components/watch-video-playlist/watch-video-playlist.vue'
 import WatchVideoRecommendations from '../../components/watch-video-recommendations/watch-video-recommendations.vue'
+import {getSkipSegments} from './sponsorblock'
 
 export default Vue.extend({
   name: 'Watch',
@@ -72,7 +73,8 @@ export default Vue.extend({
       downloadLinks: [],
       watchingPlaylist: false,
       playlistId: '',
-      playNextTimeout: null
+      playNextTimeout: null,
+      markers: []
     }
   },
   computed: {
@@ -149,7 +151,6 @@ export default Vue.extend({
           break
         case 'invidious':
           this.getVideoInformationInvidious(this.videoId)
-
           if (this.forceLocalBackendForLegacy) {
             this.getVideoInformationLocal(this.videoId)
           }
@@ -184,6 +185,31 @@ export default Vue.extend({
     toggleTheatreMode: function() {
       this.useTheatreMode = !this.useTheatreMode
     },
+    getSponsorSegments: function() {
+      return getSkipSegments(this.videoId)
+        .then(result => {
+            this.markers = result.map(function(segment) {
+              return {
+                time: segment.segment[0],
+                duration: segment.segment[1] - segment.segment[0],
+                text: "Sponsor",
+                overlay: "Sponsor"
+              }
+            })
+            console.log(this.markers);
+        })
+        .catch((err) => {
+          console.log(err)
+          const errorMessage = this.$t('SponsorBlock API Error (Click to copy)')
+          this.showToast({
+            message: `${errorMessage}: ${err}`,
+            time: 5000,
+            action: () => {
+              navigator.clipboard.writeText(err)
+            }
+          })
+        })
+    },
 
     getVideoInformationLocal: function() {
       if (this.firstLoad) {
@@ -194,6 +220,7 @@ export default Vue.extend({
         .dispatch('ytGetVideoInformation', this.videoId)
         .then(async result => {
           console.log(result)
+          await this.getSponsorSegments();
           this.videoTitle = result.videoDetails.title
           this.videoViewCount = parseInt(
             result.player_response.videoDetails.viewCount,

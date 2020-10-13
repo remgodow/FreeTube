@@ -7,6 +7,7 @@ import qualitySelector from '@silvermine/videojs-quality-selector'
 import 'videojs-vtt-thumbnails-freetube'
 import 'videojs-contrib-quality-levels'
 import 'videojs-http-source-selector'
+import 'videojs-markers-plugin'
 
 export default Vue.extend({
   name: 'FtVideoPlayer',
@@ -50,6 +51,10 @@ export default Vue.extend({
     thumbnail: {
       type: String,
       default: ''
+    },
+    markers: {
+      type: Array,
+      default: () => {return []}
     }
   },
   data: function () {
@@ -130,6 +135,9 @@ export default Vue.extend({
       this.player.caption({
         data: this.captionList
       })
+    },
+    markers: function() {
+      this.setSponsorMarkers();
     }
   },
   mounted: function () {
@@ -160,6 +168,7 @@ export default Vue.extend({
         }
 
         this.player = videojs(videoPlayer)
+        this.setSponsorMarkers()
 
         this.player.volume(this.volume)
         this.player.playbackRate(this.defaultPlayback)
@@ -209,6 +218,25 @@ export default Vue.extend({
           v.$emit('error', error.target.player.error_)
         })
       }
+    },
+
+    setSponsorMarkers: function() {
+      if(this.markers.length === 0)
+        return;
+
+      this.player.markers({
+        markerStyle: {
+          'width':'7px',
+          'background-color': 'green',
+          'height':'100% '
+        },
+        onMarkerReached: (marker) => {
+          console.log("marker reached", marker);
+          this.changeDurationBySeconds(marker.duration);
+          console.log("marker skipped");
+        },
+        markers: this.markers
+      });
     },
 
     updateVolume: function (event) {
